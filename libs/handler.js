@@ -16,6 +16,7 @@ const handler = (lambda) => {
             try {
                 await createConnection();
             } catch (error) {
+                console.log(error);
                 throw error;
             }
         }
@@ -26,13 +27,21 @@ const handler = (lambda) => {
             body = await lambda(event, context);
             statusCode = 200;
         } catch (error) {
+            console.log(error);
             body = { error: error.message };
             statusCode = 500;
         }
 
+        console.log(body);
+        console.log(statusCode);
+
         return {
-            status: statusCode,
+            statusCode,
             body: JSON.stringify(body),
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+            },
         };
     };
 };

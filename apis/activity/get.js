@@ -14,16 +14,20 @@ export const main = handler(async (event, _context) => {
     const pageNumber = Number(page);
     const skipTo = pageNumber * 10;
     const options = {
-        _id: -1,
         skip: skipTo,
         limit: 10,
     };
-    let cursor = db.collection(COLLECTIONS.ACTIVITIES).find({}, options);
+    let cursor = db
+        .collection(COLLECTIONS.ACTIVITIES)
+        .find({}, options)
+        .sort({ createdAt: -1 });
 
     let dateActivities = {
         date: null,
         activities: [],
     };
+
+    let totalDocs = 0;
 
     await cursor.forEach((doc) => {
         const { date } = dateActivities;
@@ -31,15 +35,25 @@ export const main = handler(async (event, _context) => {
         docDateTime = new Date(docDateTime).toISOString();
 
         if (date !== null && docDateTime !== date) {
-            activities.push(dateActivities);
+            activities.push({ ...dateActivities });
             dateActivities.activities = [doc];
         } else {
             dateActivities.activities.push(doc);
         }
         dateActivities.date = docDateTime;
+        totalDocs += 1;
     });
 
-    activities.push(dateActivities);
+    if (totalDocs !== 0) {
+        activities.push(dateActivities);
+    }
 
-    return activities;
+    const response = {
+        moreRecords: totalDocs === 10,
+        activities: activities,
+    };
+
+    console.log(response);
+
+    return response;
 });

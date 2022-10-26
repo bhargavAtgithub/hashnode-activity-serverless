@@ -1,6 +1,35 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "../../../apis/activity/register.js":
+/*!******************************************!*\
+  !*** ../../../apis/activity/register.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "registerActivity": () => (/* binding */ registerActivity)
+/* harmony export */ });
+/* harmony import */ var source_map_support_register__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! source-map-support/register */ "../../source-map-support/register.js");
+/* harmony import */ var source_map_support_register__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(source_map_support_register__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _libs_handler__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../libs/handler */ "../../../libs/handler.js");
+
+
+const registerActivity = async activity => {
+  try {
+    const response = await _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection("activities").insertOne(activity);
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
+
+/***/ }),
+
 /***/ "../../../constants/collections.js":
 /*!*****************************************!*\
   !*** ../../../constants/collections.js ***!
@@ -38402,9 +38431,9 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
-/*!**********************************!*\
-  !*** ../../../apis/posts/get.js ***!
-  \**********************************/
+/*!****************************************!*\
+  !*** ../../../apis/comments/create.js ***!
+  \****************************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "main": () => (/* binding */ main)
@@ -38412,35 +38441,64 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var source_map_support_register__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! source-map-support/register */ "../../source-map-support/register.js");
 /* harmony import */ var source_map_support_register__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(source_map_support_register__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _libs_handler__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../libs/handler */ "../../../libs/handler.js");
-/* harmony import */ var mongodb__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! mongodb */ "../../mongodb/lib/index.js");
-/* harmony import */ var _constants_collections__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../constants/collections */ "../../../constants/collections.js");
+/* harmony import */ var _constants_collections__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../constants/collections */ "../../../constants/collections.js");
+/* harmony import */ var mongodb__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! mongodb */ "../../mongodb/lib/index.js");
+/* harmony import */ var _activity_register__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../activity/register */ "../../../apis/activity/register.js");
 
 /**
- * Get post data using id of the post.
- * END POINT: /post/:id
- * METHOS: GET
+ * Create a new comment
+ * END POINT: /post
+ * Methos: POST
  */
 
 
 
 
 
+
 /**
+ *
+ * Comment object:
  * {
+ *  "postId": "Some random postId"
+ *  "content": "Some random comment"
+ * }
+ *
+ * response = {
  *  "statusCode": 200,
  *  "body": "{
- *      \"_id\":\"634b0f4982f21f14b3aaeea8\",
- *      \"title\":\"First mini post\",
- *      \"content\":\"Some random content for the post. I think it can be as long as it wants to be. \\n\\nGuess I'll make you of this alot.\",
- *      \"createdAt\":\"2022-10-15T09:30:00.000Z\"
+ *      \"acknowledged\": true,
+ *      \"postId\":\"63519104e662801ecd8fd24a\",
+ *      \"commentId":\"63519104e662801ecs3he23b\"
  *  }"
  * }
+ *
  */
 const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event, _context) => {
-  const postData = await _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_3__["default"].POSTS).findOne({
-    _id: (0,mongodb__WEBPACK_IMPORTED_MODULE_2__.ObjectId)(event.pathParameters.id)
+  const body = JSON.parse(event.body);
+  const current_datetime = body.commentDate ? new Date(body.commentDate) : new Date();
+  const commentObj = {
+    postId: body.postId,
+    content: body.content,
+    createdAt: current_datetime
+  };
+  const [response, postResponse] = await Promise.all([_libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].COMMENTS).insertOne(commentObj), _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].POSTS).findOne({
+    _id: (0,mongodb__WEBPACK_IMPORTED_MODULE_3__.ObjectId)(body.postId)
+  })]);
+  console.log(postResponse);
+  const activityResponse = await (0,_activity_register__WEBPACK_IMPORTED_MODULE_4__.registerActivity)({
+    createdAt: current_datetime,
+    commentId: response.insertedId,
+    postId: body.postId,
+    title: postResponse.title,
+    type: "COMMENT"
   });
-  return postData;
+  return {
+    acknowledged: response.acknowledged,
+    postId: body.postId,
+    commentId: response.insertedId,
+    activityId: activityResponse.insertedId
+  };
 });
 })();
 
@@ -38449,4 +38507,4 @@ for(var i in __webpack_exports__) __webpack_export_target__[i] = __webpack_expor
 if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
 /******/ })()
 ;
-//# sourceMappingURL=get.js.map
+//# sourceMappingURL=create.js.map

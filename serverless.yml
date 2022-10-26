@@ -63,5 +63,19 @@ functions:
           path: /activities
           method: get
           cors: true
+  create-comment:
+    handler: apis/comments/create.main
+    events:
+      - http:
+          path: /comment
+          method: post
+          cors: true
+  get-comments:
+    handler: apis/comments/get.main
+    events:
+      - http:
+          path: /comments
+          method: post
+          cors: true
 
 		

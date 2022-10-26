@@ -83,6 +83,7 @@ const handler = lambda => {
       try {
         await createConnection();
       } catch (error) {
+        console.log(error);
         throw error;
       }
     }
@@ -91,14 +92,21 @@ const handler = lambda => {
       body = await lambda(event, context);
       statusCode = 200;
     } catch (error) {
+      console.log(error);
       body = {
         error: error.message
       };
       statusCode = 500;
     }
+    console.log(body);
+    console.log(statusCode);
     return {
-      status: statusCode,
-      body: JSON.stringify(body)
+      statusCode,
+      body: JSON.stringify(body),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true
+      }
     };
   };
 };
@@ -38434,15 +38442,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var source_map_support_register__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(source_map_support_register__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _libs_handler__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../libs/handler */ "../../../libs/handler.js");
 /* harmony import */ var _constants_collections__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../constants/collections */ "../../../constants/collections.js");
-/* harmony import */ var mongodb__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! mongodb */ "../../mongodb/lib/index.js");
-/* harmony import */ var _activity_register__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../activity/register */ "../../../apis/activity/register.js");
+/* harmony import */ var _activity_register__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../activity/register */ "../../../apis/activity/register.js");
 
 /**
  * Create a new post OR Update and existing post
  * END POINT: /post
  * Methos: POST
  */
-
 
 
 
@@ -38481,37 +38487,25 @@ __webpack_require__.r(__webpack_exports__);
  */
 const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event, _context) => {
   const body = JSON.parse(event.body);
-  const current_datetime = new Date();
+  console.log(body);
+  const current_datetime = body.postDate ? new Date(body.postDate) : new Date();
   const postObj = {
     title: body.title,
     content: body.content
   };
   let response;
-  if (body.id) {
-    const updateDoc = {
-      $set: {
-        ...postObj,
-        updatedAt: current_datetime
-      }
-    };
-    const filter = {
-      _id: (0,mongodb__WEBPACK_IMPORTED_MODULE_3__.ObjectId)(body.id)
-    };
-    response = await _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].POSTS).updateOne(filter, updateDoc);
-    response.insertedId = body.id;
-  } else {
-    postObj["createdAt"] = current_datetime;
-    response = await _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].POSTS).insertOne(postObj);
-    await (0,_activity_register__WEBPACK_IMPORTED_MODULE_4__.registerActivity)({
-      createdAt: current_datetime,
-      postId: response.insertedId,
-      title: postObj["title"],
-      type: "WRITE"
-    });
-  }
+  postObj["createdAt"] = current_datetime;
+  response = await _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].POSTS).insertOne(postObj);
+  let activityResponse = await (0,_activity_register__WEBPACK_IMPORTED_MODULE_3__.registerActivity)({
+    createdAt: current_datetime,
+    postId: response.insertedId,
+    title: postObj["title"],
+    type: "WRITE"
+  });
   return {
     acknowledged: response.acknowledged,
-    postId: response.insertedId
+    postId: response.insertedId,
+    activityId: activityResponse.insertedId
   };
 });
 })();

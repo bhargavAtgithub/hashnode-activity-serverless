@@ -38402,9 +38402,9 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
-/*!**********************************!*\
-  !*** ../../../apis/posts/get.js ***!
-  \**********************************/
+/*!*************************************!*\
+  !*** ../../../apis/comments/get.js ***!
+  \*************************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "main": () => (/* binding */ main)
@@ -38412,35 +38412,66 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var source_map_support_register__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! source-map-support/register */ "../../source-map-support/register.js");
 /* harmony import */ var source_map_support_register__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(source_map_support_register__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _libs_handler__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../libs/handler */ "../../../libs/handler.js");
-/* harmony import */ var mongodb__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! mongodb */ "../../mongodb/lib/index.js");
-/* harmony import */ var _constants_collections__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../constants/collections */ "../../../constants/collections.js");
+/* harmony import */ var _constants_collections__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../constants/collections */ "../../../constants/collections.js");
 
 /**
- * Get post data using id of the post.
- * END POINT: /post/:id
- * METHOS: GET
+ * Get all comments
+ * Pagination
+ * END POINT: /comments?page=0
+ * Post Body: { postId: post_id }
+ * METHODS: GET
  */
 
 
 
-
-
-/**
- * {
- *  "statusCode": 200,
- *  "body": "{
- *      \"_id\":\"634b0f4982f21f14b3aaeea8\",
- *      \"title\":\"First mini post\",
- *      \"content\":\"Some random content for the post. I think it can be as long as it wants to be. \\n\\nGuess I'll make you of this alot.\",
- *      \"createdAt\":\"2022-10-15T09:30:00.000Z\"
- *  }"
- * }
- */
-const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event, _context) => {
-  const postData = await _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_3__["default"].POSTS).findOne({
-    _id: (0,mongodb__WEBPACK_IMPORTED_MODULE_2__.ObjectId)(event.pathParameters.id)
+const getAPage = async (options, postId, commentId) => {
+  let comments = [];
+  let commentFound = false;
+  let cursor = _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].COMMENTS).find({
+    postId: postId
+  }, options).sort({
+    createdAt: -1
   });
-  return postData;
+  await cursor.forEach(doc => {
+    if (commentId && commentId == doc._id) {
+      commentFound = true;
+    }
+    comments.push(doc);
+  });
+  return {
+    comments,
+    commentFound
+  };
+};
+const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event, _context) => {
+  var _event$queryStringPar;
+  let comments = [];
+  const {
+    postId,
+    commentId
+  } = JSON.parse(event.body);
+  let page = (_event$queryStringPar = event.queryStringParameters) === null || _event$queryStringPar === void 0 ? void 0 : _event$queryStringPar.page;
+  page = page ? Number(page) : 0;
+  let commentFound = false;
+  let lastCount = 0;
+  do {
+    console.log("doing");
+    const skipTo = page * 10;
+    const options = {
+      skip: skipTo,
+      limit: 10
+    };
+    let pageResponse = await getAPage(options, postId, commentId);
+    comments = comments.concat(pageResponse.comments);
+    commentFound = pageResponse.commentFound;
+    lastCount = pageResponse.comments.length;
+    page += 1;
+  } while (commentId && !commentFound && lastCount === 10);
+  return {
+    comments,
+    page: page - 1,
+    moreRecords: comments.length >= 10
+  };
 });
 })();
 

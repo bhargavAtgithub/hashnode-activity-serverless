@@ -54,6 +54,7 @@ const handler = lambda => {
       try {
         await createConnection();
       } catch (error) {
+        console.log(error);
         throw error;
       }
     }
@@ -62,14 +63,21 @@ const handler = lambda => {
       body = await lambda(event, context);
       statusCode = 200;
     } catch (error) {
+      console.log(error);
       body = {
         error: error.message
       };
       statusCode = 500;
     }
+    console.log(body);
+    console.log(statusCode);
     return {
-      status: statusCode,
-      body: JSON.stringify(body)
+      statusCode,
+      body: JSON.stringify(body),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true
+      }
     };
   };
 };
@@ -38422,15 +38430,17 @@ const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event
   const pageNumber = Number(page);
   const skipTo = pageNumber * 10;
   const options = {
-    _id: -1,
     skip: skipTo,
     limit: 10
   };
-  let cursor = _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].ACTIVITIES).find({}, options);
+  let cursor = _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].ACTIVITIES).find({}, options).sort({
+    createdAt: -1
+  });
   let dateActivities = {
     date: null,
     activities: []
   };
+  let totalDocs = 0;
   await cursor.forEach(doc => {
     const {
       date
@@ -38438,15 +38448,25 @@ const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event
     let docDateTime = new Date(doc.createdAt).setHours(0, 0, 0, 0);
     docDateTime = new Date(docDateTime).toISOString();
     if (date !== null && docDateTime !== date) {
-      activities.push(dateActivities);
+      activities.push({
+        ...dateActivities
+      });
       dateActivities.activities = [doc];
     } else {
       dateActivities.activities.push(doc);
     }
     dateActivities.date = docDateTime;
+    totalDocs += 1;
   });
-  activities.push(dateActivities);
-  return activities;
+  if (totalDocs !== 0) {
+    activities.push(dateActivities);
+  }
+  const response = {
+    moreRecords: totalDocs === 10,
+    activities: activities
+  };
+  console.log(response);
+  return response;
 });
 })();
 
