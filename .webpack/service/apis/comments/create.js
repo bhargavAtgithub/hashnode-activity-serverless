@@ -98,6 +98,10 @@ const handler = lambda => {
       };
       statusCode = 500;
     }
+
+    /**
+     * For cloudwatch
+     */
     console.log(body);
     console.log(statusCode);
     return {
@@ -38485,7 +38489,6 @@ const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event
   const [response, postResponse] = await Promise.all([_libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].COMMENTS).insertOne(commentObj), _libs_handler__WEBPACK_IMPORTED_MODULE_1__.db.collection(_constants_collections__WEBPACK_IMPORTED_MODULE_2__["default"].POSTS).findOne({
     _id: (0,mongodb__WEBPACK_IMPORTED_MODULE_3__.ObjectId)(body.postId)
   })]);
-  console.log(postResponse);
   const activityResponse = await (0,_activity_register__WEBPACK_IMPORTED_MODULE_4__.registerActivity)({
     createdAt: current_datetime,
     commentId: response.insertedId,

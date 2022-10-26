@@ -69,6 +69,10 @@ const handler = lambda => {
       };
       statusCode = 500;
     }
+
+    /**
+     * For cloudwatch
+     */
     console.log(body);
     console.log(statusCode);
     return {
@@ -38455,7 +38459,6 @@ const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event
   let commentFound = false;
   let lastCount = 0;
   do {
-    console.log("doing");
     const skipTo = page * 10;
     const options = {
       skip: skipTo,

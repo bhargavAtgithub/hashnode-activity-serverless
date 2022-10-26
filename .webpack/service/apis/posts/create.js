@@ -98,6 +98,10 @@ const handler = lambda => {
       };
       statusCode = 500;
     }
+
+    /**
+     * For cloudwatch
+     */
     console.log(body);
     console.log(statusCode);
     return {
@@ -38487,7 +38491,6 @@ __webpack_require__.r(__webpack_exports__);
  */
 const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event, _context) => {
   const body = JSON.parse(event.body);
-  console.log(body);
   const current_datetime = body.postDate ? new Date(body.postDate) : new Date();
   const postObj = {
     title: body.title,

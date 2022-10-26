@@ -69,6 +69,10 @@ const handler = lambda => {
       };
       statusCode = 500;
     }
+
+    /**
+     * For cloudwatch
+     */
     console.log(body);
     console.log(statusCode);
     return {

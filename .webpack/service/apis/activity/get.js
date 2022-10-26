@@ -69,6 +69,10 @@ const handler = lambda => {
       };
       statusCode = 500;
     }
+
+    /**
+     * For cloudwatch
+     */
     console.log(body);
     console.log(statusCode);
     return {
@@ -38465,7 +38469,6 @@ const main = (0,_libs_handler__WEBPACK_IMPORTED_MODULE_1__.handler)(async (event
     moreRecords: totalDocs === 10,
     activities: activities
   };
-  console.log(response);
   return response;
 });
 })();
