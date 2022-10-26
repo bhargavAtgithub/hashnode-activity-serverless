@@ -39,7 +39,6 @@ export const main = handler(async (event, _context) => {
     let commentFound = false;
     let lastCount = 0;
     do {
-        console.log("doing");
         const skipTo = page * 10;
         const options = {
             skip: skipTo,

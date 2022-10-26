@@ -53,7 +53,5 @@ export const main = handler(async (event, _context) => {
         activities: activities,
     };
 
-    console.log(response);
-
     return response;
 });

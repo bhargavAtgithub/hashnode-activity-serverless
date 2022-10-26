@@ -41,7 +41,6 @@ import { registerActivity } from "../activity/register";
  */
 export const main = handler(async (event, _context) => {
     const body = JSON.parse(event.body);
-    console.log(body);
     const current_datetime = body.postDate
         ? new Date(body.postDate)
         : new Date();

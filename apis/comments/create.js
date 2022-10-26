@@ -46,8 +46,6 @@ export const main = handler(async (event, _context) => {
             .findOne({ _id: ObjectId(body.postId) }),
     ]);
 
-    console.log(postResponse);
-
     const activityResponse = await registerActivity({
         createdAt: current_datetime,
         commentId: response.insertedId,
